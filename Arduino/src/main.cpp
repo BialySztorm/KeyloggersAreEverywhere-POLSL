@@ -1,17 +1,37 @@
 #include <Arduino.h>
+#include <EEPROM.h>
+
+const int eepromSize = 4096; // Rozmiar pamięci EEPROM w bajtach
+int eepromIndex = 0;
+
+void printEEPROM();
 
 void setup() {
-  // initialize digital pin LED_BUILTIN as an output.
-  pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);
 }
 
-// the loop function runs over and over again forever
 void loop() {
-  digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-  delay(1000);                      // wait for a second
-  digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
-  delay(1000);                      // wait for a second
-  // print to monitor
-  Serial.println("Hello World");
+  if (Serial.available()) {
+    char c = Serial.read();
+    // Serial.print(c); // Wyświetlanie odczytanych znaków na monitorze szeregowym
+
+    // Zapis do pamięci EEPROM
+    if (eepromIndex < eepromSize - 1) {
+      EEPROM.write(eepromIndex++, c);
+    } else {
+      Serial.println("Pamięć EEPROM pełna!");
+    }
+    if(c == '#')
+      printEEPROM();
+  }
+  delay(100);
+}
+
+void printEEPROM() {
+  Serial.println("Zawartość pamięci EEPROM:");
+  for (int i = 0; i < eepromSize/4; i++) {
+    char c = EEPROM.read(i);
+    Serial.print(c);
+  }
+  Serial.println();
 }
